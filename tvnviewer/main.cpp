@@ -29,10 +29,25 @@
 #include "ConnectionListener.h"
 #include "ViewerCmdLine.h"
 #include "util/ResourceLoader.h"
+#include "gui/CommonControlsEx.h"
+
+//
+// TobonVNC fork.
+//
+// Opt into the version 6 of the common controls. With this dependency in the
+// manifest Windows draws the standard controls (buttons, edits, combos, scroll
+// bars) and the common ones (tool bar, list view, tabs, up-down) with the modern
+// themed look instead of the classic one this program was born with.
+//
+#pragma comment(linker, "\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                        LPTSTR lpCmdLine, int nCmdShow)
 {
+  // TobonVNC fork: the viewer never initialised the common controls; it is
+  // needed to get the themed standard controls that the manifest above asks for.
+  CommonControlsEx::init();
+
   ViewerSettingsManager::initInstance(RegistryPaths::VIEWER_PATH);
   SettingsManager *sm = ViewerSettingsManager::getInstance();
 
