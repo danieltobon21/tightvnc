@@ -250,14 +250,19 @@ void ViewerWindow::applySettings()
   viewerCoreSettings();
 }
 
-//
-// TobonVNC fork.
-//
-// Enables remote input (mouse and keyboard) or blocks it again ("view only")
-// for the current session. The state is what DesktopWindow checks before
-// sending any keyboard or pointer event to the server, and it is not
-// persisted: the next connection starts in the configured start mode.
-//
+/*
+ * TobonVNC fork.
+ *
+ * Enables remote input (mouse and keyboard) or blocks it again ("view only")
+ * for the current session. The state is what DesktopWindow checks before
+ * sending any keyboard or pointer event to the server, and it is not
+ * persisted: the next connection starts in the configured start mode.
+ *
+ * The UI refresh is posted instead of being executed here, because this
+ * handler runs inside the toolbar's own click processing (the command comes
+ * from a TBSTYLE_CHECK button) and touching a toolbar from within its own
+ * notification is not safe.
+ */
 void ViewerWindow::commandRemoteInput()
 {
   bool enableInput = m_conConf->isViewOnly();
@@ -267,11 +272,31 @@ void ViewerWindow::commandRemoteInput()
   m_logWriter.info(_T("Remote input %s by the user"),
                    enableInput ? _T("ENABLED") : _T("BLOCKED (view only)"));
 
-  // Keyboard shortcuts (Ctrl / Alt buttons, Ctrl+Alt+Del) and file transfer
-  // depend on the same flag.
-  enableUserElements();
-  viewerCoreSettings();
-  updateRemoteInputUI();
+  PostMessage(m_hWnd, WM_USER_REMOTE_INPUT, 0, 0);
+}
+
+/*
+ * TobonVNC fork.
+ *
+ * Applies the new remote-input state: keyboard shortcuts (Ctrl / Alt buttons,
+ * Ctrl+Alt+Del) and file transfer depend on the same flag, and the toolbar
+ * button, menu item and window title show it.
+ *
+ * The viewer-core calls can throw (they talk to the server: for example when
+ * the connection breaks). This runs from a posted message, that is, outside
+ * the RFB thread that normally handles those exceptions, so they are caught
+ * and logged here.
+ */
+void ViewerWindow::updateRemoteInputState()
+{
+  try {
+    enableUserElements();
+    viewerCoreSettings();
+    updateRemoteInputUI();
+  } catch (Exception &e) {
+    m_logWriter.error(_T("Remote input state update failed: %s"),
+                      e.getMessage());
+  }
 }
 
 //
@@ -340,6 +365,10 @@ bool ViewerWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     return true;
   case WM_USER_FS_WARNING:
     return onFsWarning();
+  // TobonVNC fork: deferred remote-input UI refresh
+  case WM_USER_REMOTE_INPUT:
+    updateRemoteInputState();
+    return true;
   case WM_CLOSE:
     return onClose();
   case WM_DESTROY:
