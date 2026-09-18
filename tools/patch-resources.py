@@ -38,7 +38,7 @@ def rep(text, old, new, count=1, tag=""):
 
 BITMAP_OLD = 'IDB_TOOLBAR             BITMAP                  "res\\\\toolbar.bmp"\r\n'
 BITMAP_NEW = (BITMAP_OLD +
-              'IDB_TOOLBAR_INPUT       BITMAP                  "res\\toolbar_input.bmp"\r\n')
+              'IDB_TOOLBAR_INPUT       BITMAP                  "res\\\\toolbar_input.bmp"\r\n')
 
 CONF_DIALOG_SHIFTS = [
     ("IDD_CONFIGURATION DIALOGEX 0, 0, 221, 216",
@@ -149,9 +149,8 @@ def patch_main(text):
                 'IDC_STATIC,13,81,283,26\r\n')
     new_para = ('    LTEXT           "TobonVNC Viewer is a modified build of the '
                 'TightVNC Viewer (GNU GPL v2).\\nNew connections start in view-only '
-                'mode: remote mouse and keyboard stay\\nblocked until you allow them '
-                'with the lock button (Ctrl+Alt+Shift+K).\\n'
-                'Source code: github.com/danieltobon21/tightvnc",'
+                'mode: remote mouse and keyboard stay blocked\\nuntil you allow them '
+                'with the lock button (Ctrl+Alt+Shift+K). Source code on GitHub.",'
                 'IDC_STATIC,13,72,283,40\r\n')
     text = rep(text, old_para, new_para, tag=tag)
 
