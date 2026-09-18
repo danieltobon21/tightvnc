@@ -50,14 +50,22 @@ $lnk.Description = 'TobonVNC Viewer - TightVNC Viewer fork: sessions start in vi
 $lnk.Save()
 Say "start menu: $lnkPath -> $((New-Object -ComObject WScript.Shell).CreateShortcut($lnkPath).TargetPath)"
 
-# 5. .vnc file association (per user, wins over the machine-wide one)
-$cmdKey = 'HKCU:\Software\Classes\VncViewer.Config\shell\open\command'
-New-Item -Force -Path $cmdKey | Out-Null
-Set-ItemProperty -Path $cmdKey -Name '(Default)' -Value ('"' + "$install\TobonVNCViewer.exe" + '" "%1"')
-New-Item -Force -Path 'HKCU:\Software\Classes\.vnc' | Out-Null
-Set-ItemProperty -Path 'HKCU:\Software\Classes\.vnc' -Name '(Default)' -Value 'VncViewer.Config'
-Say ("association: HKCU .vnc -> " + (Get-ItemProperty 'HKCU:\Software\Classes\.vnc').'(default)')
-Say ("association: open command -> " + (Get-ItemProperty $cmdKey).'(default)')
+# 5. .vnc file association: the viewer ONLY reads a config file through
+#    -optionsfile=<path>. With a bare "%1" it parses the path as a connection
+#    string and fails with "Connection parameters (host, port, socket, gates)
+#    is empty", so the switch is mandatory.
+$exePath = "$install\TobonVNCViewer.exe"
+$command = '"' + $exePath + '" -optionsfile="%1"'
+$icon    = '"' + $exePath + '",0'
+foreach ($root in @('HKCU:\Software\Classes', 'HKLM:\Software\Classes')) {
+  foreach ($sub in @('VncViewer.Config\shell\open\command', 'VncViewer.Config\DefaultIcon', '.vnc')) {
+    New-Item -Force -Path (Join-Path $root $sub) -ErrorAction SilentlyContinue | Out-Null
+  }
+  Set-ItemProperty -Path (Join-Path $root 'VncViewer.Config\shell\open\command') -Name '(Default)' -Value $command
+  Set-ItemProperty -Path (Join-Path $root 'VncViewer.Config\DefaultIcon') -Name '(Default)' -Value $icon
+  Set-ItemProperty -Path (Join-Path $root '.vnc') -Name '(Default)' -Value 'VncViewer.Config'
+  Say ("association $root : open = " + (Get-ItemProperty (Join-Path $root 'VncViewer.Config\shell\open\command')).'(default)')
+}
 
 # 6. remove the old TightVNC start menu entries (backed up first)
 $oldMenu = 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\TightVNC'

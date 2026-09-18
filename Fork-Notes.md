@@ -102,6 +102,23 @@ aserciones por reemplazo), `tools/make-toolbar-input-bmp.py`,
 * Toda esta mecánica (probar en la sesión interactiva por tareas programadas
   `-it`, leer geometría, sondead la barra) está en `tools/windows-test/`.
 
+### La asociación `.vnc` necesita el switch (bug real de despliegue)
+
+El visor **solo** lee un archivo de configuración con `-optionsfile=<ruta>`. La asociación
+original era:
+
+```
+"C:\Program Files\TightVNC\tvnviewer.exe" -optionsfile="%1"
+```
+
+Al re-apuntarla al ejecutable nuevo sin el switch (`"<exe>" "%1"`), la ruta del `.vnc` se
+interpreta como parámetro de conexión, no se parsea ningún host y el visor muestra
+**"Connection parameters (host, port, socket, gates) is empty"** al abrir el archivo.
+Corregido: `-optionsfile="%1"` (más `DefaultIcon`) en `HKCU` y `HKLM`
+(`tools/windows-test/deploy.ps1` ya lo hace bien).
+
+Comprobación: abrir el `.vnc` y ver el título → `fedora:99 - TobonVNC Viewer  [VIEW ONLY - remote input blocked]`.
+
 ### Verificación final (DANIEL-WORK, 2026-09-18)
 
 Con el binario final, contra `tools/fake-rfb-server.py`:
