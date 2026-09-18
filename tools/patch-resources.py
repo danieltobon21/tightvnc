@@ -38,7 +38,6 @@ def rep(text, old, new, count=1, tag=""):
 
 BITMAP_OLD = 'IDB_TOOLBAR             BITMAP                  "res\\\\toolbar.bmp"\r\n'
 BITMAP_NEW = (BITMAP_OLD +
-              'IDB_TOOLBAR_INPUT       BITMAP                  "res\\\\toolbar_input.bmp"\r\n')
 
 CONF_DIALOG_SHIFTS = [
     ("IDD_CONFIGURATION DIALOGEX 0, 0, 221, 216",

@@ -25,9 +25,11 @@ Archivos tocados (todos con nota "TobonVNC fork"):
 | `tvnviewer/ViewerInstance.cpp` | `prepareStartConfig()`: fuerza `viewOnly` al crear cada conexión. |
 | `client-config-lib/ViewerConfig.{h,cpp}` | Opción `StartViewOnly` (por defecto activa). |
 | `tvnviewer/ConfigurationDialog.{h,cpp}` | Casilla "Start connections in view-only mode". |
-| `tvnviewer/resource.h`, `resource_chs.h` | IDs nuevos: `IDS_TB_REMOTEINPUT` (217), tooltips (218/219), `IDB_TOOLBAR_INPUT` (232), `IDC_CSTARTVIEWONLY` (1091), `ID_CONN_REMOTE_INPUT` (40009). |
+| `tvnviewer/resource.h`, `resource_chs.h` | IDs nuevos: `IDS_TB_REMOTEINPUT` (217), tooltips (218/219), `IDC_CSTARTVIEWONLY` (1091), `ID_CONN_REMOTE_INPUT` (40009). |
 | `tvnviewer/tvnviewer.rc`, `tvnviewer_chs.rc` | Cadenas nuevas, bitmap nuevo, atajo `Ctrl+Alt+Shift+K`, casilla en el diálogo de configuración, rebranding, versión 2.8.81.1. |
-| `tvnviewer/res/toolbar_input.bmp` | Dos iconos 16x16 (candado cerrado con ojo rojo / abierto con ojo verde), 4bpp con la misma paleta y color de fondo que `toolbar.bmp`. Generado por `tools/make-toolbar-input-bmp.py`. |
+| `tvnviewer/res/toolbar.bmp` | Tira de 18 imágenes de 24x24 en 32bpp **con alfa**: las 16 de comando (0..15) más los dos estados del candado (16 cerrado, 17 abierto). Generada por `tools/make-toolbar-icons.py`. |
+| `gui/ToolBar.{h,cpp}` | La tira se carga en un `ImageList` `ILC_COLOR32` (`TB_SETIMAGELIST`) para conservar el alfa, y `setBitmapButtons()` desacopla "imágenes de la tira" de "botones automáticos". |
+| `gui/CommonControlsEx.cpp`, `tvnviewer/main.cpp` | `ICC_STANDARD_CLASSES` + manifest de comctl32 v6: los controles de los diálogos usan el tema moderno de Windows 11. |
 | `tvnviewer/tvnviewer.vcxproj` | `TargetName` = `TobonVNCViewer`, retarget a `v143`. |
 | Todos los `.vcxproj` | `v140_xp` → `v143` (373 configuraciones). |
 | `tvnviewer/NamingDefs.cpp` | Producto a TobonVNC; **se mantiene** `Software\TightVNC\Viewer` como ruta de registro. |
@@ -47,7 +49,7 @@ aserciones por reemplazo), `tools/make-toolbar-input-bmp.py`,
   `ExtendedDesktopSizeDecoder.cpp` (y otros 13 casos) que no existen en esta copia.
   Nada los usa: se quitaron las entradas (`tools/clean-stale-project-entries.py`).
 * **RC2135 "file not found"**: en el `.rc` la ruta debe llevar **doble barra**
-  (`"res\\toolbar_input.bmp"`). Con una sola barra, el compilador de recursos
+  (`"res\\toolbar.bmp"`). Con una sola barra, el compilador de recursos
   interpreta `\t` como tabulador y no encuentra el archivo.
 * **RC4206 "title string too long"**: el texto de un control de diálogo se trunca a
   **256 caracteres**. El párrafo del *About* se recortó por eso.
@@ -126,6 +128,52 @@ Explorador: **buscar los bytes de cada imagen del `.ico` dentro del exe** (las e
 guardan tal cual en `RT_ICON`). Con las 7 presentes y 0 del icono antiguo, es concluyente.
 Ojo: `ExtractAssociatedIcon` **no** sirve para esto — devuelve el icono pequeño del sistema
 reescalado desde otro tamaño, y parece un diseño distinto.
+
+### La barra de herramientas: mapa implícito y frágil
+
+Los comandos de la barra **no** vienen de una tabla: `Gui/ToolBar::attachToolBar()` los
+calcula como `IDS_TB_NEWCONNECTION + i` (200..215), asigna `iBitmap = i` y marca los
+separadores por **índice fijo** (`ViewerWindow::onCreate` llama a
+`setViewAutoButtons(4, 6, 10, 11, 15, TB_Style_sep)`). Consecuencias que hay que respetar:
+
+* Los `IDS_TB_*` tienen que ser consecutivos en el orden de la barra (200..215).
+* Insertar un ítem en el **menú** no mueve la barra (son listas independientes): el ítem
+  nuevo simplemente se añade como botón extra con su propio id (217) **después** de
+  `attachToolBar()`.
+* Cada separador produce **dos** entradas (un separador y un botón extra que hereda la
+  imagen del índice), así que la barra acaba con 22 ranuras: 16 botones + 5 separadores +
+  el candado. Verificado leyendo la barra con `TB_GETBUTTON`/`TB_GETITEMRECT` entre
+  procesos (`tools/windows-test/inspect-toolbar.ps1`): comandos 200..215 con imágenes 0..15
+  y el 217 con las imágenes 16/17.
+
+### Interfaz: manifest v6 y tira de iconos con alfa
+
+* El visor **no tenía manifest**, así que los 9 diálogos se dibujaban con el aspecto clásico
+  y la barra nunca se tematizaba. Se añadió la dependencia de `Microsoft.Windows.Common-Controls`
+  6.0.0.0 (pragma del enlazador en `main.cpp`) y `CommonControlsEx::init()` en la entrada del
+  visor (antes solo lo hacía `tvncontrol`) con `ICC_STANDARD_CLASSES`.
+  **Ojo al verificar**: el `comctl32` v6 se carga desde `WinSxS\...common-controls_6595b64144ccf1df_6.0.*`
+  aunque su `FileVersion` interno diga «5.82»; la ruta es la prueba, no la versión.
+* Iconos de la barra: tira de 24 px en 32bpp con alfa dibujada en el lenguaje de la familia
+  (tinta `#2F3339`, acento `#FF5A1F`). `CreateToolbarEx`/`TB_ADDBITMAP` solo hacen máscara por
+  color y dejan un cerco oscuro alrededor del glifo, así que la tira se carga con
+  `LoadImage(..., LR_CREATEDIBSECTION)` en un `ImageList` `ILC_COLOR32` y se aplica con
+  `TB_SETIMAGELIST` (+ `TB_SETBITMAPSIZE`/`TB_SETBUTTONSIZE` de 24).
+* Windows 11 redondea solo las ventanas con título (`DWMWCP_DEFAULT`), así que las esquinas
+  redondeadas **no** necesitan código; la barra de título oscura sí, y queda para cuando el
+  cliente sea oscuro (el cliente es claro, como en TobonFrames/TobonMouse).
+
+### Trampas de los scripts de prueba (segunda ronda)
+
+* Los scripts de sondeo **deben** lanzarse en la sesión interactiva (tarea programada): desde
+  SSH corren en la sesión 0 y `EnumWindows` no ve ninguna ventana del visor (parece que no
+  hay barra cuando el problema es la sesión).
+* En PowerShell, `$estructura.campo = valor` sobre una estructura traída de .NET **no se
+  aplica**: hay que leer con `[BitConverter]::ToInt32($buf, offset)`. Con asignaciones de
+  campo los informes salían con las columnas vacías.
+* Las coordenadas del botón del candado **no** pueden estar fijas: al pasar los iconos a 24 px
+  la barra creció y el clic de la prueba caía en «zoom −». Ahora el test localiza el botón por
+  id de comando (`ButtonCenter(tb, pid, 217)`).
 
 ### La asociación `.vnc` necesita el switch (bug real de despliegue)
 

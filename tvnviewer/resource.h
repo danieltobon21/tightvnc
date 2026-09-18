@@ -79,7 +79,6 @@
 // TobonVNC fork: state-dependent tooltips for the button above.
 #define IDS_TB_REMOTEINPUT_TIP_BLOCKED  218
 #define IDS_TB_REMOTEINPUT_TIP_ENABLED  219
-#define IDB_TOOLBAR_INPUT               232
 #define IDD_FS_WARNING                  230
 #define IDD_DISPATCH_ID                 231
 #define IDC_LABEL                       1001

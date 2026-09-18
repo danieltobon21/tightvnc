@@ -38,6 +38,40 @@ public class Q {
     return found;
   }
   public static int LParam(int lo, int hi) { return (hi << 16) | (lo & 0xFFFF); }
+
+  // --- TobonVNC: localizar un boton de la barra por su id de comando ---
+  // Los mensajes TB_GETBUTTON/TB_GETITEMRECT reciben un PUNTERO, asi que el
+  // buffer tiene que estar reservado DENTRO del proceso del visor.
+  [DllImport("kernel32.dll")] public static extern IntPtr OpenProcess(int access, bool inherit, uint pid);
+  [DllImport("kernel32.dll")] public static extern IntPtr VirtualAllocEx(IntPtr hp, IntPtr addr, IntPtr size, int type, int protect);
+  [DllImport("kernel32.dll")] public static extern bool VirtualFreeEx(IntPtr hp, IntPtr addr, IntPtr size, int type);
+  [DllImport("kernel32.dll")] public static extern bool ReadProcessMemory(IntPtr hp, IntPtr addr, byte[] buf, IntPtr size, out IntPtr read);
+  [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
+
+  public static int[] ButtonCenter(IntPtr tb, uint pid, int cmd) {
+    int count = (int)Send(tb, 0x0418, IntPtr.Zero, IntPtr.Zero);        // TB_BUTTONCOUNT
+    IntPtr hp = OpenProcess(0x1F0FFF, false, pid);
+    if (hp == IntPtr.Zero) return null;
+    IntPtr buf = VirtualAllocEx(hp, IntPtr.Zero, (IntPtr)4096, 0x3000, 0x04);
+    if (buf == IntPtr.Zero) { CloseHandle(hp); return null; }
+    int[] res = null;
+    IntPtr rd;
+    byte[] b = new byte[32], r = new byte[16];
+    for (int i = 0; i < count; i++) {
+      Send(tb, 0x0417, (IntPtr)i, buf);                                 // TB_GETBUTTON
+      if (!ReadProcessMemory(hp, buf, b, (IntPtr)32, out rd)) continue;
+      if (BitConverter.ToInt32(b, 4) != cmd) continue;
+      Send(tb, 0x041D, (IntPtr)i, buf);                                 // TB_GETITEMRECT
+      if (!ReadProcessMemory(hp, buf, r, (IntPtr)16, out rd)) break;
+      int l = BitConverter.ToInt32(r, 0), t = BitConverter.ToInt32(r, 4);
+      int rr = BitConverter.ToInt32(r, 8), bb = BitConverter.ToInt32(r, 12);
+      res = new int[] { (l + rr) / 2, (t + bb) / 2 };
+      break;
+    }
+    VirtualFreeEx(hp, buf, IntPtr.Zero, 0x8000);
+    CloseHandle(hp);
+    return res;
+  }
 }
 "@
 
@@ -68,8 +102,12 @@ function State($label) {
   $bmp = [int64][Q]::Send($tb, $TB_GETBITMAP, [IntPtr]217, [IntPtr]::Zero)
   Note ("{0}: state=0x{1:X} image={2} | {3}" -f $label, $state, $bmp, (Title))
 }
+$gPadlock = [Q]::ButtonCenter($tb, [uint32]$proc.Id, 217)   # 217 = IDS_TB_REMOTEINPUT
+if ($gPadlock) { Note ("boton del candado en x=$($gPadlock[0]) y=$($gPadlock[1]) (se localiza por id de comando, no por coordenadas fijas)") }
+else { Note 'ERROR: no se encontro el boton del candado en la barra'; $log | Out-File -Encoding ascii -Append C:\temp\test7.txt; exit 1 }
+
 function ClickPadlock() {
-  $x = 424; $y = 11
+  $x = $gPadlock[0]; $y = $gPadlock[1]
   [Q]::Send($tb, $WM_MOUSEMOVE, [IntPtr]::Zero, [IntPtr][Q]::LParam($x, $y)) | Out-Null
   Start-Sleep -Milliseconds 60
   [Q]::Send($tb, $WM_LBUTTONDOWN, [IntPtr]1, [IntPtr][Q]::LParam($x, $y)) | Out-Null

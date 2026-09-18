@@ -35,6 +35,24 @@ pulsas el candado.
 
 ---
 
+## Interfaz
+
+* **Controles tematizados**: el visor declara la dependencia de comctl32 v6 en el manifest,
+  así que los nueve diálogos (conexión, opciones, configuración, transferencia…) usan el
+  aspecto moderno de Windows 11 en lugar del clásico.
+* **Barra de herramientas**: 16 iconos de 24 px en 32bpp con canal alfa (más los dos estados
+  del candado), dibujados en el lenguaje de la familia Tobon — tinta `#2F3339` sobre la barra
+  clara y acento naranja `#FF5A1F`. Se regeneran con:
+
+```bash
+python3 tools/make-toolbar-icons.py --out tvnviewer/res/toolbar.bmp   # 18 imágenes de 24x24
+python3 tools/make-toolbar-icons.py --preview /tmp/toolbar.png        # hoja de revisión
+```
+
+  El visor carga esa tira en un `ImageList` `ILC_COLOR32` (`TB_SETIMAGELIST`), porque
+  `CreateToolbarEx`/`TB_ADDBITMAP` solo hacen máscara por color y dejarían un cerco oscuro
+  alrededor de cada glifo.
+
 ## Compilar
 
 Requisitos: **Visual Studio 2022 (Build Tools sirve)** con el toolset **v143** y el

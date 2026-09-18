@@ -499,7 +499,6 @@
     <None Include="res\tightvnc48.bmp" />
     <None Include="res\toolbar.bmp" />
     <!-- TobonVNC fork: two-state bitmap for the remote-input button -->
-    <None Include="res\toolbar_input.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tvnviewer.rc" />
