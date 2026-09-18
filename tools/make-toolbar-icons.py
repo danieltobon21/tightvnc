@@ -73,6 +73,25 @@ def arc(d, cx, cy, r, start, end, w=2.6, color=INK):
           start=start, end=end, fill=color, width=max(1, int(w * SS)))
 
 
+
+def cap(d, cx, cy, w=7.0, h=10.0, color=INK, r=1.6, sw=2.2):
+    """Tecla centrada en (cx, cy)."""
+    rrect(d, cx - w / 2.0, cy - h / 2.0, cx + w / 2.0, cy + h / 2.0, r, w=sw, color=color)
+
+
+def lens(d, sign=None, color=ACCENT):
+    """Lupa con cuadricula fija: lente en (10,10) r=6 y mango a 45 grados."""
+    circle_outline(d, 10, 10, 6.0, w=2.6)
+    line(d, [(14.4, 14.4), (20.8, 20.8)], w=3.0)
+    if sign == '+':
+        line(d, [(10, 6.8), (10, 13.2)], w=2.4, color=color)
+        line(d, [(6.8, 10), (13.2, 10)], w=2.4, color=color)
+    elif sign == '-':
+        line(d, [(6.8, 10), (13.2, 10)], w=2.4, color=color)
+    elif sign == '1:1':
+        text(d, '1:1', 10, 10.1, px=7, color=color)
+
+
 # ---------------------------------------------------------------- iconos
 def g_new_connection(d):
     rrect(d, 2, 4.5, 14.5, 15, 2.5)
@@ -109,55 +128,60 @@ def g_pause(d):
 
 
 def g_refresh(d):
-    arc(d, 12, 12, 7.6, 30, 330, w=2.8)
-    line(d, [(12 + 7.6 * math.cos(math.radians(30)), 12 + 7.6 * math.sin(math.radians(30))),
-             (17.4, 5.4), (13.2, 3.6)])
-
+    """Flecha circular: arco amplio con la punta apoyada en su extremo."""
+    cx = cy = 12.0
+    r = 6.9
+    arc(d, cx, cy, r, 55, 335, w=2.8)
+    a = math.radians(335)
+    px, py = cx + r * math.cos(a), cy + r * math.sin(a)
+    tx, ty = -math.sin(a), math.cos(a)          # sentido de giro (horario)
+    nx, ny = math.cos(a), math.sin(a)
+    L, w2 = 5.2, 4.2
+    # la base del triangulo se solapa con el arco para que no parezca un punto suelto
+    d.polygon([((px + tx * L) * SS, (py + ty * L) * SS),
+               ((px + nx * w2) * SS, (py + ny * w2) * SS),
+               ((px - nx * w2) * SS, (py - ny * w2) * SS)], fill=INK)
 
 def g_ctrl_alt_del(d):
-    """Tres teclas: el combo se lee por el numero de teclas, no por texto."""
-    for i, x in enumerate((1.2, 8.8, 16.4)):
-        rrect(d, x, 6.8, x + 6.4, 17.2, 1.6, w=2.2, color=ACCENT if i == 1 else INK)
+    """Tres teclas iguales y alineadas; la del medio en acento = combo de tres."""
+    for i, cx in enumerate((3.7, 12.0, 20.3)):
+        cap(d, cx, 12, w=6.6, h=11, color=ACCENT if i == 1 else INK)
 
 def g_ctrl_esc(d):
-    """Dos teclas (mas anchas que las del combo de tres)."""
-    for i, x in enumerate((2.6, 11.6)):
-        rrect(d, x, 6.8, x + 9.8, 17.2, 2.0, w=2.4, color=INK if i == 0 else ACCENT)
+    """Dos teclas iguales y separadas; la segunda en acento."""
+    for i, cx in enumerate((6.3, 17.7)):
+        cap(d, cx, 12, w=9.0, h=11, color=INK if i == 0 else ACCENT)
 
 def g_ctrl(d):
-    rrect(d, 2.5, 6, 21.5, 18, 3)
-    line(d, [(12, 9.2), (8.4, 14.6)], w=2.6, color=ACCENT)
-    line(d, [(12, 9.2), (15.6, 14.6)], w=2.6, color=ACCENT)
+    """Tecla ancha con el simbolo de Ctrl (^), centrado y con margen interior."""
+    cap(d, 12, 12, w=17, h=13.5, r=2.0, sw=2.2)
+    line(d, [(12, 8.6), (9.1, 14.4)], w=2.4, color=ACCENT)
+    line(d, [(12, 8.6), (14.9, 14.4)], w=2.4, color=ACCENT)
 
 def g_alt(d):
-    rrect(d, 2.5, 6, 21.5, 18, 3)
-    text(d, 'Alt', 12, 12.2, px=9.5)
+    """Tecla ancha con la letra A (Alt): a 24 px el texto entero no se lee."""
+    cap(d, 12, 12, w=17, h=13.5, r=2.0, sw=2.2)
+    text(d, 'A', 12, 12.3, px=9.5, color=ACCENT)
 
 def g_transfer(d):
-    """Dos bloques con dos flechas opuestas: intercambio de archivos."""
-    rrect(d, 2, 3.5, 8, 11, 1.4, w=2.0)
-    rrect(d, 16, 13, 22, 20.5, 1.4, w=2.0)
-    line(d, [(8.6, 7.2), (15.4, 7.2)], w=2.2, color=ACCENT)
-    line(d, [(15.4, 7.2), (13.4, 5.2)], w=2.2, color=ACCENT)
-    line(d, [(15.4, 16.8), (8.6, 16.8)], w=2.2, color=ACCENT)
-    line(d, [(8.6, 16.8), (10.6, 14.8)], w=2.2, color=ACCENT)
+    """Dos bloques alineados con dos flechas finas opuestas (intercambio)."""
+    rrect(d, 1.5, 5, 8, 19, 1.8, w=2.2)
+    rrect(d, 16, 5, 22.5, 19, 1.8, w=2.2)
+    # arriba: hacia la derecha
+    line(d, [(9.6, 10), (13.4, 10)], w=1.8, color=ACCENT)
+    d.polygon([(14.8 * SS, 10 * SS), (12.4 * SS, 8.5 * SS), (12.4 * SS, 11.5 * SS)], fill=ACCENT)
+    # abajo: hacia la izquierda
+    line(d, [(14.4, 14), (10.6, 14)], w=1.8, color=ACCENT)
+    d.polygon([(9.2 * SS, 14 * SS), (11.6 * SS, 12.5 * SS), (11.6 * SS, 15.5 * SS)], fill=ACCENT)
 
 def g_zoom_in(d):
-    circle_outline(d, 10.5, 10.5, 6.6)
-    line(d, [(15.5, 15.5), (21, 21)], w=3)
-    line(d, [(10.5, 7.6), (10.5, 13.4)]); line(d, [(7.6, 10.5), (13.4, 10.5)])
-
+    lens(d, '+')
 
 def g_zoom_out(d):
-    circle_outline(d, 10.5, 10.5, 6.6)
-    line(d, [(15.5, 15.5), (21, 21)], w=3)
-    line(d, [(7.6, 10.5), (13.4, 10.5)])
-
+    lens(d, '-')
 
 def g_zoom_100(d):
-    circle_outline(d, 10.5, 10.5, 6.6)
-    line(d, [(15.5, 15.5), (21, 21)], w=3)
-    text(d, '1:1', 10.5, 10.4, px=7.5, color=ACCENT)
+    lens(d, '1:1')
 
 def g_zoom_fit(d):
     """Ajustar a la ventana: corchetes de esquina hacia dentro + punto central."""
