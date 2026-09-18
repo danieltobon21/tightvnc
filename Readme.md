@@ -54,6 +54,28 @@ Notas del proyecto:
   (`ExtendedDesktopSizeDecoder.*`, `SetDesktopSize.*`, `KeyMap.h`, …): rompían la
   compilación con `C1083`. Ver `tools/clean-stale-project-entries.py`.
 
+## Icono
+
+El icono de la aplicación es propio (el original de TightVNC era de 2001 y además solo
+traía 16 y 32 px, así que Windows lo estiraba borroso en el menú Inicio, Alt+Tab y el
+Explorador). El nuevo trae los siete tamaños que usa Windows
+(256/128/64/48/32/24/16) y sigue el lenguaje visual de la familia Tobon:
+
+| Elemento | Valor |
+| --- | --- |
+| Fondo | squircle plano `#181A1F`, radio ~23 % |
+| Trazo (pantalla y peana) | `#ECEEF2`, grosor ~7 % del ancho |
+| Acento | `#FF5A1F` (candado) |
+| Motivo | monitor con el candado naranja dentro = "pantalla con la entrada remota bloqueada" |
+
+Generado por `tools/make-appicon.py` (dibuja en 4x y reduce, con arte dedicado a 16 px
+sin peana y trazo grueso). Para rehacerlo o cambiar el acento:
+
+```bash
+python3 tools/make-appicon.py --out tvnviewer/res/appicon.ico   # variante A1 por defecto
+python3 tools/make-appicon.py --preview-big /tmp/big.png       # comparar variantes A1/A2/A3
+```
+
 ## Instalar / actualizar
 
 1. Detener el visor y copiar `TobonVNCViewer.exe` a `C:\Program Files\TightVNC\`.

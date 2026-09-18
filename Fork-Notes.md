@@ -102,6 +102,31 @@ aserciones por reemplazo), `tools/make-toolbar-input-bmp.py`,
 * Toda esta mecánica (probar en la sesión interactiva por tareas programadas
   `-it`, leer geometría, sondead la barra) está en `tools/windows-test/`.
 
+### Icono de la aplicación
+
+El `.ico` original traía **solo 16 y 32 px** (1078 bytes): en el menú Inicio, Alt+Tab y el
+Explorador (que piden 48/256) Windows lo escalaba y se veía borroso. Se sustituyó por uno
+propio con los 7 tamaños y la paleta de la familia Tobon, tomada de los iconos ya existentes
+(`tobonframes.ico` y `tobonmouse.ico`, idénticos entre sí):
+
+| Uso | Color |
+| --- | --- |
+| Fondo (squircle, radio ~23 %) | `#181A1F` |
+| Trazo claro (gris pantalla) | `#ECEEF2` |
+| Acento (candado) | `#FF5A1F` |
+
+El motivo (monitor con el candado naranja dentro) dice lo que hace este visor: pantalla con
+la entrada remota bloqueada. Se descartaron dos variantes (candado en insignia en la esquina
+y candado grande delante) por desequilibradas, y el dibujo de 16 px es **específico** (sin
+peana, trazo más grueso, candado más grande), porque a ese tamaño el monitor con detalles se
+convierte en una mancha. Todo se regenera con `tools/make-appicon.py`.
+
+Verificación de que el icono quedó dentro del binario, sin depender de la vista previa del
+Explorador: **buscar los bytes de cada imagen del `.ico` dentro del exe** (las entradas se
+guardan tal cual en `RT_ICON`). Con las 7 presentes y 0 del icono antiguo, es concluyente.
+Ojo: `ExtractAssociatedIcon` **no** sirve para esto — devuelve el icono pequeño del sistema
+reescalado desde otro tamaño, y parece un diseño distinto.
+
 ### La asociación `.vnc` necesita el switch (bug real de despliegue)
 
 El visor **solo** lee un archivo de configuración con `-optionsfile=<ruta>`. La asociación
