@@ -24,13 +24,33 @@
 
 #include "ViewerInstance.h"
 
+#include "client-config-lib/ViewerConfig.h"
+
 #include "viewer-core/RemoteViewerCore.h"
 #include "viewer-core/FileTransferCapability.h"
+
+//
+// TobonVNC fork.
+//
+// Makes a copy of the connection configuration in which remote input is
+// blocked ("view only") when the viewer is configured to start new
+// connections in that mode. The toolbar button / View menu item can enable
+// remote input later, for the current session only.
+//
+static ConnectionConfig prepareStartConfig(const ConnectionConfig *conConf)
+{
+  ConnectionConfig conf(*conConf);
+
+  if (ViewerConfig::getInstance()->isStartViewOnlyEnabled()) {
+    conf.setViewOnly(true);
+  }
+  return conf;
+}
 
 ViewerInstance::ViewerInstance(WindowsApplication *application,
                                ConnectionData *condata,
                                const ConnectionConfig *conConf)
-: m_conConf(*conConf),
+: m_conConf(prepareStartConfig(conConf)),
   m_condata(*condata),
   m_socket(0),
   m_viewerWnd(application,
@@ -46,7 +66,7 @@ ViewerInstance::ViewerInstance(WindowsApplication *application,
                                ConnectionData *condata,
                                const ConnectionConfig *conConf,
                                SocketIPv4 *socket)
-: m_conConf(*conConf),
+: m_conConf(prepareStartConfig(conConf)),
   m_condata(*condata),
   m_socket(socket),
   m_viewerWnd(application,

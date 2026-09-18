@@ -121,6 +121,8 @@ BOOL ConfigurationDialog::onInitDialog()
 {
   setControlById(m_showToolBars, IDC_CSHOWTOOLBARS); 
   setControlById(m_warnAtSwitching, IDC_CWARNATSW);
+  // TobonVNC fork
+  setControlById(m_startViewOnly, IDC_CSTARTVIEWONLY);
   setControlById(m_numberConn, IDC_ENUMCON);
   setControlById(m_snumConn, IDC_SNUMCON);
   setControlById(m_reverseConn, IDC_EREVCON);
@@ -161,6 +163,8 @@ void ConfigurationDialog::updateControlValues()
 
   m_showToolBars.check(config->isToolbarShown());
   m_warnAtSwitching.check(config->isPromptOnFullscreenEnabled());
+  // TobonVNC fork
+  m_startViewOnly.check(config->isStartViewOnlyEnabled());
 
   StringStorage logFileName;
   logFileName.format(_T("%s\\%s.log"), config->getPathToLogFile(), LogNames::VIEWER_LOG_FILE_STUB_NAME);
@@ -231,6 +235,8 @@ void ConfigurationDialog::onOkPressed()
 
   config->showToolbar(m_showToolBars.isChecked());
   config->promptOnFullscreen(m_warnAtSwitching.isChecked());
+  // TobonVNC fork
+  config->setStartViewOnly(m_startViewOnly.isChecked());
 
   SettingsManager *sm = ViewerSettingsManager::getInstance();
   config->saveToStorage(sm);

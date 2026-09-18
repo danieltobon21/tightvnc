@@ -220,6 +220,15 @@ bool ToolBar::isVisible()
   return !!(style & WS_VISIBLE);
 }
 
+// TobonVNC fork: changeButtonBitmap() was added to support two-state buttons
+// (used by the "Allow remote input" toggle in the viewer toolbar).
+bool ToolBar::changeButtonBitmap(int idButton, int iBitmap)
+{
+  LRESULT result = SendMessage(m_hWndToolbar, TB_CHANGEBITMAP,
+                               idButton, MAKELPARAM(iBitmap, 0));
+  return !!result;
+}
+
 bool ToolBar::checkButton(int idButton, bool check)
 {
   LRESULT result = SendMessage(m_hWndToolbar, TB_CHECKBUTTON, 

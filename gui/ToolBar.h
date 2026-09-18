@@ -90,6 +90,13 @@ public:
   bool addButton(int iBitmap, int idCommand, BYTE state=TBSTATE_ENABLED, 
                  BYTE style=TBSTYLE_BUTTON,  UINT dwData=0, int iString=0);
 
+  // changeButtonBitmap() changes the image of the specified button in the
+  // toolbar to the image with the given index (see addBitmap()). Returns true
+  // if successful.
+  //
+  // TobonVNC fork: added to support two-state (locked / unlocked) buttons.
+  bool changeButtonBitmap(int idButton, int iBitmap);
+
   // checkButton() checks or unchecks a given button in a toolbar control.
   bool checkButton(int idButton, bool check);
 

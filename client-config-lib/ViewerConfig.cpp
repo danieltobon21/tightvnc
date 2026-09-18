@@ -36,6 +36,9 @@
 ViewerConfig::ViewerConfig(const TCHAR registryPath[])
 : m_logLevel(0), m_listenPort(5500), m_historyLimit(32),
   m_showToolbar(true), m_promptOnFullscreen(true),
+  // TobonVNC fork: safe default -- new connections start in view-only mode
+  // when no stored value is found.
+  m_startViewOnly(true),
   m_conHistory(&m_conHistoryKey, m_historyLimit),
   m_logger(0)
 {
@@ -73,6 +76,11 @@ bool ViewerConfig::loadFromStorage(SettingsManager *storage)
 
   TEST_FAIL(storage->getBoolean(_T("NoToolbar"), &m_showToolbar), loadAllOk);
 
+  // TobonVNC fork: the value may be absent in installations created by other
+  // builds -- in that case the constructed default (enabled) is kept, and the
+  // load is not reported as failed.
+  storage->getBoolean(_T("StartViewOnly"), &m_startViewOnly);
+
   if (storage->getBoolean(_T("SkipFullScreenPrompt"), &m_promptOnFullscreen)) {
     m_promptOnFullscreen = !m_promptOnFullscreen;
   } else {
@@ -90,6 +98,8 @@ bool ViewerConfig::saveToStorage(SettingsManager *storage) const
   TEST_FAIL(storage->setInt(_T("ListenPort"), m_listenPort), saveAllOk);
   TEST_FAIL(storage->setInt(_T("HistoryLimit"), m_historyLimit), saveAllOk);
   TEST_FAIL(storage->setBoolean(_T("NoToolbar"), m_showToolbar), saveAllOk);
+  // TobonVNC fork
+  TEST_FAIL(storage->setBoolean(_T("StartViewOnly"), m_startViewOnly), saveAllOk);
   TEST_FAIL(storage->setBoolean(_T("SkipFullScreenPrompt"), !m_promptOnFullscreen), saveAllOk);
 
   return saveAllOk;
@@ -182,6 +192,18 @@ bool ViewerConfig::isToolbarShown() const
 {
   AutoLock l(&m_cs);
   return m_showToolbar;
+}
+
+void ViewerConfig::setStartViewOnly(bool startViewOnly)
+{
+  AutoLock l(&m_cs);
+  m_startViewOnly = startViewOnly;
+}
+
+bool ViewerConfig::isStartViewOnlyEnabled() const
+{
+  AutoLock l(&m_cs);
+  return m_startViewOnly;
 }
 
 void ViewerConfig::promptOnFullscreen(bool prompt)

@@ -99,6 +99,11 @@ protected:
   void commandCtrlEsc();
   void commandCtrl();
   void commandAlt();
+  // TobonVNC fork: enables/blocks remote mouse and keyboard input.
+  void commandRemoteInput();
+  // TobonVNC fork: refreshes toolbar button, menu item and window title to
+  // reflect the current remote-input state.
+  void updateRemoteInputUI();
   void commandToolBar();
   void commandPause();
   void onAbout();
@@ -142,6 +147,10 @@ protected:
   DesktopWindow m_dsktWnd;
   StringStorage m_strToolTip;
   ToolBar m_toolbar;
+  // TobonVNC fork: image indexes of the "allow remote input" toolbar button
+  // (locked = remote input blocked, enabled = remote input allowed).
+  int m_imgRemoteInputLocked;
+  int m_imgRemoteInputEnabled;
   ViewerMenu m_menu;
   ConnectionData *m_conData;
   SystemInformation m_sysinf;

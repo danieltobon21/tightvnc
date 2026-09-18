@@ -27,6 +27,8 @@
 #include "util/ResourceLoader.h"
 #include "rfb/StandardPixelFormatFactory.h"
 
+#include <CommCtrl.h>
+
 #include "FsWarningDialog.h"
 #include "NamingDefs.h"
 #include "TvnViewer.h"
@@ -48,6 +50,9 @@ ViewerWindow::ViewerWindow(WindowsApplication *application,
   m_fileTransfer(0),
   m_conData(conData),
   m_dsktWnd(&m_logWriter, conConf),
+  // TobonVNC fork: the "allow remote input" button images (-1 = not loaded).
+  m_imgRemoteInputLocked(-1),
+  m_imgRemoteInputEnabled(-1),
   m_isConnected(false),
   m_sizeIsChanged(false),
   m_hooksEnabledFirstTime(true),
@@ -120,6 +125,22 @@ bool ViewerWindow::onCreate(LPCREATESTRUCT lps)
   m_toolbar.setViewAutoButtons(11, ToolBar::TB_Style_sep);
   m_toolbar.setViewAutoButtons(15, ToolBar::TB_Style_sep);
   m_toolbar.attachToolBar(getHWnd());
+
+  //
+  // TobonVNC fork: add the "Allow remote input (mouse && keyboard)" toggle.
+  //
+  // The button is added separately from the bitmap-driven buttons because it
+  // owns two images (locked / unlocked) that are swapped at run time, and it
+  // is a check button (pressed = remote input allowed).
+  //
+  LRESULT imgIdx = m_toolbar.addBitmap(2, IDB_TOOLBAR_INPUT);
+  if (imgIdx > 0) {
+    m_imgRemoteInputLocked = static_cast<int>(imgIdx);
+    m_imgRemoteInputEnabled = m_imgRemoteInputLocked + 1;
+  }
+  m_toolbar.addButton(m_imgRemoteInputLocked < 0 ? 0 : m_imgRemoteInputLocked,
+                      IDS_TB_REMOTEINPUT, TBSTATE_ENABLED, TBSTYLE_CHECK);
+
   m_menu.getSystemMenu(getHWnd());
   m_menu.loadMenu();
   applySettings();
@@ -163,6 +184,9 @@ void ViewerWindow::enableUserElements()
   } else {
     m_toolbar.enableButton(IDS_TB_SCALE100, scale != 100);
   }
+
+  // TobonVNC fork: keep the remote-input toggle in sync with the config.
+  updateRemoteInputUI();
 }
 
 bool ViewerWindow::viewerCoreSettings()
@@ -224,6 +248,55 @@ void ViewerWindow::applySettings()
   changeCursor(m_conConf->getLocalCursorShape());
   enableUserElements();
   viewerCoreSettings();
+}
+
+//
+// TobonVNC fork.
+//
+// Enables remote input (mouse and keyboard) or blocks it again ("view only")
+// for the current session. The state is what DesktopWindow checks before
+// sending any keyboard or pointer event to the server, and it is not
+// persisted: the next connection starts in the configured start mode.
+//
+void ViewerWindow::commandRemoteInput()
+{
+  bool enableInput = m_conConf->isViewOnly();
+
+  m_conConf->setViewOnly(!enableInput);
+
+  m_logWriter.info(_T("Remote input %s by the user"),
+                   enableInput ? _T("ENABLED") : _T("BLOCKED (view only)"));
+
+  // Keyboard shortcuts (Ctrl / Alt buttons, Ctrl+Alt+Del) and file transfer
+  // depend on the same flag.
+  enableUserElements();
+  viewerCoreSettings();
+  updateRemoteInputUI();
+}
+
+//
+// TobonVNC fork.
+//
+// Reflects the remote-input state in the toolbar button (image + pressed
+// state), the menu item (check mark) and the window title.
+//
+void ViewerWindow::updateRemoteInputUI()
+{
+  bool inputEnabled = !m_conConf->isViewOnly();
+
+  if (m_imgRemoteInputLocked >= 0) {
+    m_toolbar.changeButtonBitmap(IDS_TB_REMOTEINPUT,
+                                 inputEnabled ? m_imgRemoteInputEnabled
+                                              : m_imgRemoteInputLocked);
+  }
+  m_toolbar.pressButton(IDS_TB_REMOTEINPUT, inputEnabled);
+  m_menu.checkedMenuItem(IDS_TB_REMOTEINPUT, inputEnabled);
+
+  if (m_isConnected) {
+    StringStorage windowName = formatWindowName();
+    setWindowText(&windowName);
+    m_dsktWnd.setWindowText(&windowName);
+  }
 }
 
 void ViewerWindow::changeCursor(int type)
@@ -670,7 +743,9 @@ int ViewerWindow::translateAccelToTB(int val)
     make_pair(ID_FULL_SCR,        IDS_TB_FULLSCREEN), 
     make_pair(ID_REQ_SCR_REFRESH, IDS_TB_REFRESH),
     make_pair(ID_CTRL_ALT_DEL,    IDS_TB_CTRLALTDEL),
-    make_pair(ID_TRANSF_FILES,    IDS_TB_TRANSFER)
+    make_pair(ID_TRANSF_FILES,    IDS_TB_TRANSFER),
+    // TobonVNC fork
+    make_pair(ID_CONN_REMOTE_INPUT, IDS_TB_REMOTEINPUT)
   };
 
   for (int i = 0; i < sizeof(accelerators) / sizeof(std::pair<int, int>); i++) {
@@ -723,6 +798,10 @@ bool ViewerWindow::onCommand(WPARAM wParam, LPARAM lParam)
       return true;
     case IDS_TB_ALT:
       commandAlt();
+      return true;
+    // TobonVNC fork
+    case IDS_TB_REMOTEINPUT:
+      commandRemoteInput();
       return true;
     case IDS_TB_TOOLBAR:
       commandToolBar();
@@ -909,6 +988,13 @@ bool ViewerWindow::onNotify(int idCtrl, LPNMHDR pnmh)
     return false;
   }
   int resId = static_cast<int>(toolTipText->hdr.idFrom);
+
+  // TobonVNC fork: the remote-input button tooltip shows its current state.
+  if (resId == IDS_TB_REMOTEINPUT) {
+    resId = m_conConf->isViewOnly() ? IDS_TB_REMOTEINPUT_TIP_BLOCKED
+                                    : IDS_TB_REMOTEINPUT_TIP_ENABLED;
+  }
+
   rLoader->loadString(resId, &m_strToolTip);
   toolTipText->lpszText = const_cast<TCHAR *>(m_strToolTip.getString());
   return true;
@@ -1231,6 +1317,17 @@ StringStorage ViewerWindow::formatWindowName() const
   } else {
     windowName.format(_T("%s"), ProductNames::VIEWER_PRODUCT_NAME);
   }
+
+  //
+  // TobonVNC fork: make the remote-input state visible in the title bar, so
+  // that it is always obvious whether the remote computer can be controlled.
+  //
+  if (m_conConf->isViewOnly()) {
+    windowName.appendString(_T("  [VIEW ONLY - remote input blocked]"));
+  } else {
+    windowName.appendString(_T("  [remote input ENABLED]"));
+  }
+
   return windowName;
 }
 
