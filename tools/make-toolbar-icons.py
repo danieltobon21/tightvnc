@@ -88,8 +88,11 @@ def lens(d, sign=None, color=ACCENT):
         line(d, [(6.8, 10), (13.2, 10)], w=2.4, color=color)
     elif sign == '-':
         line(d, [(6.8, 10), (13.2, 10)], w=2.4, color=color)
-    elif sign == '1:1':
-        text(d, '1:1', 10, 10.1, px=7, color=color)
+    elif sign == 'pixel':
+        # A 24 px el texto no se lee: un cuadro solido dentro de la lente dice
+        # "un pixel tal cual" (escala real) y no se confunde con + ni con -.
+        d.rounded_rectangle((7.4 * SS, 7.4 * SS, 12.6 * SS, 12.6 * SS),
+                            radius=0.8 * SS, fill=color)
 
 
 # ---------------------------------------------------------------- iconos
@@ -181,7 +184,7 @@ def g_zoom_out(d):
     lens(d, '-')
 
 def g_zoom_100(d):
-    lens(d, '1:1')
+    lens(d, 'pixel')
 
 def g_zoom_fit(d):
     """Ajustar a la ventana: corchetes de esquina hacia dentro + punto central."""
