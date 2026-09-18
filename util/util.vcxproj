@@ -529,7 +529,6 @@
     <ClInclude Include="StringParser.h" />
     <ClInclude Include="StringStorage.h" />
     <ClInclude Include="StringTable.h" />
-    <ClInclude Include="StringTemplate.h" />
     <ClInclude Include="StringVector.h" />
     <ClInclude Include="Unicode.h" />
     <ClInclude Include="UnicodeStringStorage.h" />

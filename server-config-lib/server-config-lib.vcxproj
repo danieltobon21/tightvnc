@@ -380,7 +380,6 @@
   <ItemGroup>
     <ClInclude Include="ConfigReloadListener.h" />
     <ClInclude Include="Configurator.h" />
-    <ClInclude Include="DesktopConfig.h" />
     <ClInclude Include="IpAccessControl.h" />
     <ClInclude Include="IpAccessRule.h" />
     <ClInclude Include="PortMapping.h" />

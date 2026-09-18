@@ -471,7 +471,6 @@
     <ClInclude Include="FileTransferMainDialog.h" />
     <ClInclude Include="FsWarningDialog.h" />
     <ClInclude Include="HelpDialog.h" />
-    <ClInclude Include="KeyMap.h" />
     <ClInclude Include="LoginDialog.h" />
     <ClInclude Include="NamingDefs.h" />
     <ClInclude Include="NewFolderDialog.h" />
@@ -499,6 +498,8 @@
     <None Include="res\tightvnc.bmp" />
     <None Include="res\tightvnc48.bmp" />
     <None Include="res\toolbar.bmp" />
+    <!-- TobonVNC fork: two-state bitmap for the remote-input button -->
+    <None Include="res\toolbar_input.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tvnviewer.rc" />

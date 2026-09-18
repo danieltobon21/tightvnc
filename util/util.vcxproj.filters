@@ -163,9 +163,6 @@
     <ClInclude Include="StringTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StringTemplate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="StringVector.h">
       <Filter>Header Files</Filter>
     </ClInclude>

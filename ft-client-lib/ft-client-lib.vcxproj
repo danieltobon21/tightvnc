@@ -434,22 +434,16 @@
     <ClInclude Include="CopyFileEventListener.h" />
     <ClInclude Include="CopyOperation.h" />
     <ClInclude Include="DownloadOperation.h" />
-    <ClInclude Include="FileExistDialog.h" />
     <ClInclude Include="FileInfoList.h" />
-    <ClInclude Include="FileInfoListView.h" />
-    <ClInclude Include="FileRenameDialog.h" />
     <ClInclude Include="FileTransferCore.h" />
     <ClInclude Include="FileTransferEventAdapter.h" />
     <ClInclude Include="FileTransferEventHandler.h" />
     <ClInclude Include="FileTransferInterface.h" />
-    <ClInclude Include="FileTransferMainDialog.h" />
     <ClInclude Include="FileTransferMessageProcessor.h" />
     <ClInclude Include="FileTransferOperation.h" />
     <ClInclude Include="FileTransferReplyBuffer.h" />
     <ClInclude Include="FileTransferRequestSender.h" />
-    <ClInclude Include="ListenerContainer.h" />
     <ClInclude Include="LocalFilesDeleteOperation.h" />
-    <ClInclude Include="NewFolderDialog.h" />
     <ClInclude Include="OperationEventListener.h" />
     <ClInclude Include="OperationNotPermittedException.h" />
     <ClInclude Include="OperationSupport.h" />
@@ -457,7 +451,6 @@
     <ClInclude Include="RemoteFileRenameOperation.h" />
     <ClInclude Include="RemoteFilesDeleteOperation.h" />
     <ClInclude Include="RemoteFolderCreateOperation.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="UploadOperation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -46,9 +46,6 @@
     <ClInclude Include="Configurator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DesktopConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="IpAccessControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
