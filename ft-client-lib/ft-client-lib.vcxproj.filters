@@ -86,25 +86,13 @@
     <ClInclude Include="DownloadOperation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileExistDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FileInfoList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileInfoListView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileRenameDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileTransferEventAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileTransferEventHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileTransferMainDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileTransferMessageProcessor.h">
@@ -119,13 +107,7 @@
     <ClInclude Include="FileTransferRequestSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ListenerContainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LocalFilesDeleteOperation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NewFolderDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OperationEventListener.h">
@@ -147,9 +129,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RemoteFolderCreateOperation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UploadOperation.h">

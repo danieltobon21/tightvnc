@@ -56,6 +56,8 @@ protected:
 
   CheckBox m_showToolBars;
   CheckBox m_warnAtSwitching;
+  // TobonVNC fork: "start connections in view-only mode" checkbox
+  CheckBox m_startViewOnly;
   TextBox m_numberConn;
   SpinControl m_snumConn;
   TextBox m_reverseConn;

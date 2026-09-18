@@ -86,6 +86,16 @@ public:
   // Returns "show toolbar" flag
   bool isToolbarShown() const;
 
+  //
+  // TobonVNC fork: "start connections in view-only mode" option.
+  //
+  // Sets the flag that makes every new connection start in view-only mode
+  // (remote mouse and keyboard are blocked until the user allows them with
+  // the toolbar button / View menu item).
+  void setStartViewOnly(bool startViewOnly);
+  // Returns the "start connections in view-only mode" flag
+  bool isStartViewOnlyEnabled() const;
+
   // Sets "prompt on fullscreen flag"
   void promptOnFullscreen(bool promt);
   // Returns "prompt on fullscreen flag"
@@ -108,6 +118,8 @@ protected:
   int m_historyLimit;
   // If set then toolbar is shown, otherwise not shown
   bool m_showToolbar;
+  // TobonVNC fork: if set then new connections start in view-only mode
+  bool m_startViewOnly;
   // If set then app must show promt dialog when viewer window
   // become fullscreen
   bool m_promptOnFullscreen;

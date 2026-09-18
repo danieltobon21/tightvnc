@@ -70,6 +70,10 @@ public:
   static const int WM_USER_DISCONNECT = WM_USER + 3;
   static const int WM_USER_AUTH_ERROR = WM_USER + 4;
   static const int WM_USER_FS_WARNING = WM_USER + 5;
+  // TobonVNC fork: posted after the remote-input flag changed, so that the
+  // toolbar/menu refresh never runs inside the toolbar's own click handling
+  // (re-entrant toolbar calls corrupt its internal state).
+  static const int WM_USER_REMOTE_INPUT = WM_USER + 6;
 
 protected:
   static const int TIMER_DESKTOP_STATE = 1;
@@ -99,6 +103,14 @@ protected:
   void commandCtrlEsc();
   void commandCtrl();
   void commandAlt();
+  // TobonVNC fork: enables/blocks remote mouse and keyboard input.
+  void commandRemoteInput();
+  // TobonVNC fork: applies the new remote-input state to toolbar, menu and
+  // window title (posted from commandRemoteInput()).
+  void updateRemoteInputState();
+  // TobonVNC fork: refreshes toolbar button, menu item and window title to
+  // reflect the current remote-input state.
+  void updateRemoteInputUI();
   void commandToolBar();
   void commandPause();
   void onAbout();
@@ -142,6 +154,10 @@ protected:
   DesktopWindow m_dsktWnd;
   StringStorage m_strToolTip;
   ToolBar m_toolbar;
+  // TobonVNC fork: image indexes of the "allow remote input" toolbar button
+  // (locked = remote input blocked, enabled = remote input allowed).
+  int m_imgRemoteInputLocked;
+  int m_imgRemoteInputEnabled;
   ViewerMenu m_menu;
   ConnectionData *m_conData;
   SystemInformation m_sysinf;

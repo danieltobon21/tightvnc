@@ -63,6 +63,9 @@ void ViewerMenu::loadMenu()
     {MENU_ITEM, IDS_TB_PAUSE},
     {MENU_ITEM, IDS_TB_REFRESH},
     {SEPARATOR, 0},
+    // TobonVNC fork: allow/block remote mouse and keyboard input.
+    {MENU_ITEM, IDS_TB_REMOTEINPUT},
+    {SEPARATOR, 0},
     {MENU_ITEM, IDS_TB_CTRLALTDEL},
     {MENU_ITEM, IDS_TB_CTRLESC},
     {MENU_ITEM, IDS_TB_CTRL},

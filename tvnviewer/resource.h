@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Включаемый файл, созданный в Microsoft Visual C++.
-// Используется tvnviewer.rc
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ Microsoft Visual C++.
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ tvnviewer.rc
 //
 #define IDB_TOOLBAR                     101
 #define IDI_CNOCURSOR                   102
@@ -74,6 +74,12 @@
 #define IDS_TB_SCALEAUTO                214
 #define IDS_TB_FULLSCREEN               215
 #define IDS_TB_CONFIGURATION            216
+// TobonVNC fork: toggle remote mouse/keyboard input at run time.
+#define IDS_TB_REMOTEINPUT              217
+// TobonVNC fork: state-dependent tooltips for the button above.
+#define IDS_TB_REMOTEINPUT_TIP_BLOCKED  218
+#define IDS_TB_REMOTEINPUT_TIP_ENABLED  219
+#define IDB_TOOLBAR_INPUT               232
 #define IDD_FS_WARNING                  230
 #define IDD_DISPATCH_ID                 231
 #define IDC_LABEL                       1001
@@ -159,6 +165,8 @@
 #define IDC_LISTENING                   1083
 #define IDC_BABOUT                      1084
 #define IDC_OPEN_LOG_FOLDER_BUTTON      1087
+// TobonVNC fork: "start connections in view-only mode" option.
+#define IDC_CSTARTVIEWONLY              1091
 #define IDC_CWARN_FS                    1088
 #define IDC_ID_EDIT                     1089
 #define IDC_LABEL_ID                    1090
@@ -169,6 +177,8 @@
 #define ID_REQ_SCR_REFRESH              40006
 #define ID_CTRL_ALT_DEL                 40007
 #define ID_TRANSF_FILES                 40008
+// TobonVNC fork: accelerator for the remote-input toggle.
+#define ID_CONN_REMOTE_INPUT            40009
 
 // Next default values for new objects
 // 
