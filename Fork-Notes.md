@@ -163,6 +163,20 @@ separadores por **índice fijo** (`ViewerWindow::onCreate` llama a
   redondeadas **no** necesitan código; la barra de título oscura sí, y queda para cuando el
   cliente sea oscuro (el cliente es claro, como en TobonFrames/TobonMouse).
 
+### MSBuild no ve las imágenes del `.rc` (un cambio de icono puede no llegar al exe)
+
+El `.rc` referencia los bitmaps con la sintaxis del compilador de recursos
+(`IDB_X BITMAP "res\\x.bmp"`), **no** con `#include`: MSBuild no registra esa dependencia, así
+que al cambiar solo un `.bmp`/`.ico` el `.res` sigue siendo «más nuevo» que el `.rc`, el
+compilador de recursos no vuelve a correr y el enlazador tampoco → **el exe sale idéntico al
+anterior**. Pasó con la tira de la barra (se publicó una Release con el binario previo).
+
+Regla: antes de compilar hay que **tocar el `.rc`** (`(Get-Item tvnviewer.rc).LastWriteTime = Get-Date`)
+y, sobre todo, **verificar que el exe es nuevo**: comparar su `LastWriteTime` con el instante en
+que arrancó el build (`$t0`) y comprobar que los bytes del recurso están dentro del binario.
+Un `Select-String ': error'` sobre un log que no existe devuelve **0 errores** y da por buena una
+compilación que nunca ocurrió: comprobar siempre que el log existe.
+
 ### Trampas de los scripts de prueba (segunda ronda)
 
 * Los scripts de sondeo **deben** lanzarse en la sesión interactiva (tarea programada): desde
