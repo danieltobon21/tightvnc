@@ -45,6 +45,15 @@ public:
   // bitmap and making gaps or separators.
   void setViewAutoButtons(int iButton, int style);
 
+  // setBitmapButtons()
+  // Number of images of the loaded strip that become automatic buttons (the
+  // rest of the strip stays available as spare images, e.g. the two states of
+  // an on/off button). 0 means "all of them" (default).
+  //
+  // TobonVNC fork: added because the strip now also carries the two padlock
+  // images, so it has more images than commands.
+  void setBitmapButtons(int nButtons);
+
   // loadToolBarfromRes()
   // This procedure will load a toolbar image from resource
   // id is a number of bitmap. It means that buttons are
@@ -145,9 +154,15 @@ public:
 private:
   int m_initialStr;
   int m_numberTB;
+  int m_bitmapButtons;
   DWORD m_id;
   int m_width, m_height;
   HWND m_hWndToolbar;
+
+  // TobonVNC fork: the button images are a 32bpp strip loaded into an
+  // ILC_COLOR32 image list (TB_ADDBITMAP loses the alpha channel). The toolbar
+  // control does not own the list, so we keep the handle to destroy it.
+  HIMAGELIST m_hImageList;
 
   std::map<int, int> m_autoButtons;
 };

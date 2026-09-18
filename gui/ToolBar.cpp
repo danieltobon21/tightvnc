@@ -35,12 +35,22 @@ ToolBar::ToolBar()
 
   m_hWndToolbar = 0;
   m_initialStr = -1;
+  m_numberTB = 0;
+  m_bitmapButtons = 0;
+  m_width = m_height = 0;
+  m_id = 0;
+  m_hImageList = 0;
 }
 
 ToolBar::~ToolBar()
 {
   if (m_hWndToolbar) {
     DestroyWindow(m_hWndToolbar);
+  }
+  if (m_hImageList) {
+    // The toolbar control does not destroy the list it was given.
+    ImageList_Destroy(m_hImageList);
+    m_hImageList = 0;
   }
 }
 
@@ -71,6 +81,44 @@ void ToolBar::setViewAutoButtons(int iButton, int style)
   m_autoButtons[iButton] = style;
 }
 
+void ToolBar::setBitmapButtons(int nButtons)
+{
+  m_bitmapButtons = nButtons;
+}
+
+//
+// TobonVNC fork.
+//
+// Builds an image list out of the toolbar strip resource. The strip is a 32bpp
+// bitmap with alpha; loading it into an ILC_COLOR32 list is what keeps the
+// transparency, whereas the images CreateToolbarEx/TB_ADDBITMAP build are
+// colour-keyed and leave a dark halo around the glyphs on a themed toolbar.
+//
+namespace {
+HIMAGELIST createImageListFromStrip(HINSTANCE hInst, UINT id, int imageW, int imageH)
+{
+  HIMAGELIST himl = 0;
+  HBITMAP hbmp = reinterpret_cast<HBITMAP>(LoadImage(hInst, MAKEINTRESOURCE(id),
+                                                     IMAGE_BITMAP, 0, 0,
+                                                     LR_CREATEDIBSECTION));
+  if (hbmp == 0) {
+    return 0;
+  }
+
+  himl = ImageList_Create(imageW, imageH, ILC_COLOR32 | ILC_MASK, 4, 4);
+  if (himl != 0) {
+    // A strip wider than one image is split into imageW wide images.
+    if (ImageList_Add(himl, hbmp, 0) == -1) {
+      ImageList_Destroy(himl);
+      himl = 0;
+    }
+  }
+
+  DeleteObject(hbmp);
+  return himl;
+}
+}
+
 void ToolBar::loadToolBarfromRes(DWORD id)
 {
   BITMAP bmp;
@@ -94,7 +142,12 @@ void ToolBar::attachToolBar(HWND hwnd)
 {
   std::vector<TBBUTTON> tbuttons;
 
-  for (int i=0; i < m_numberTB; i++) {
+  // TobonVNC fork: the strip may carry more images than commands (the two
+  // padlock states are images 16 and 17), so the number of automatic buttons is
+  // what the caller asked for, not the number of images.
+  int nButtons = m_bitmapButtons > 0 ? m_bitmapButtons : m_numberTB;
+
+  for (int i=0; i < nButtons; i++) {
     TBBUTTON tbutton;
 
     ZeroMemory(&tbutton, sizeof(tbutton));
@@ -124,12 +177,26 @@ void ToolBar::attachToolBar(HWND hwnd)
      WS_VISIBLE | WS_CHILD | TBSTYLE_TOOLTIPS | WS_CLIPSIBLINGS | TBSTYLE_FLAT | WS_BORDER,
      m_id,
      static_cast<int>(tbuttons.size()),
-     GetModuleHandle(NULL),
-     m_id,
+     0,
+     0,
      &tbuttons.front(),
      static_cast<int>(tbuttons.size()),
      0, 0, 0, 0,
      sizeof(TBBUTTON));
+
+  //
+  // TobonVNC fork: no bitmap is passed to CreateToolbarEx (those images are
+  // colour-keyed, so 32bpp icons would get a dark halo). Instead the strip is
+  // loaded into an ILC_COLOR32 image list, which does honour the alpha channel.
+  //
+  int imageSize = m_height > 0 ? m_height : 16;
+  m_hImageList = createImageListFromStrip(GetModuleHandle(NULL), m_id, imageSize, imageSize);
+  if (m_hImageList != 0) {
+    SendMessage(m_hWndToolbar, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(m_hImageList));
+    SendMessage(m_hWndToolbar, TB_SETBITMAPSIZE, 0, MAKELONG(imageSize, imageSize));
+    SendMessage(m_hWndToolbar, TB_SETBUTTONSIZE, 0, MAKELONG(imageSize, imageSize));
+  }
+
   SendMessage(m_hWndToolbar, TB_SETINDENT, 4, 0);
 }
 
